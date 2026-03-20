@@ -179,7 +179,7 @@ const ResourceDetailPage = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr) 2fr', gap: '1rem' }}>
                         <select name="type" value={formData.type} onChange={handleFormChange} className="form-input">
                             <option value="Text Note">Text Note</option>
-                            <option value="Question Link">Question Link</option>
+                            <option value="Question Link">Link</option>
                             <option value="File / Image Upload">File / Image Upload</option>
                             <option value="Article">Article</option>
                         </select>
