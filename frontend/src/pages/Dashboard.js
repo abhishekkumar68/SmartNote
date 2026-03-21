@@ -1,13 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import API from '../services/api';
+import { AuthContext } from '../context/AuthContext';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { Library, CheckCircle2, Clock, CircleDashed, Bookmark, Star, PieChart as PieChartIcon } from 'lucide-react';
 import SearchBar from '../components/SearchBar';
 import ResourceCard from '../components/ResourceCard';
+import StatCard from '../components/Dashboard/StatCard';
+import LearningHeatmap from '../components/Dashboard/LearningHeatmap';
+import './Dashboard.css';
 
-const COLORS = ['#10b981', '#4f46e5', '#f59e0b', '#ef4444'];
-const TYPE_COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f43f5e', '#14b8a6', '#64748b'];
+const COLORS = ['#10b981', '#f59e0b', '#64748b']; // Success (Green) for Progress only
+const TYPE_COLORS = ['#8b5cf6', '#6366f1', '#a855f7', '#d946ef', '#3b82f6']; // Purple gradients for category
 
 const Dashboard = () => {
+    const { user } = useContext(AuthContext);
+    const [allResources, setAllResources] = useState([]);
     const [stats, setStats] = useState({
         total: 0,
         completed: 0,
@@ -15,11 +22,9 @@ const Dashboard = () => {
         notStarted: 0,
         bookmarked: 0,
         avgLearningValue: 0,
-        resourcesPerCollection: 0,
         mostUsedType: 'N/A'
     });
     const [typeData, setTypeData] = useState([]);
-
     const [searchResults, setSearchResults] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
 
@@ -29,13 +34,8 @@ const Dashboard = () => {
 
     const fetchStats = async () => {
         try {
-            const [resourcesRes, collectionsRes] = await Promise.all([
-                API.get('/resources'),
-                API.get('/collections')
-            ]);
-
-            const data = resourcesRes.data;
-            const collections = collectionsRes.data;
+            const { data } = await API.get('/resources');
+            setAllResources(data);
 
             const completed = data.filter(r => r.status === 'Completed').length;
             const inProgress = data.filter(r => r.status === 'In Progress').length;
@@ -60,10 +60,6 @@ const Dashboard = () => {
                 ? (ratedResources.reduce((sum, r) => sum + r.rating, 0) / ratedResources.length).toFixed(1)
                 : 0;
 
-            const resourcesPerCollection = collections.length > 0
-                ? (data.length / collections.length).toFixed(1)
-                : 0;
-
             setStats({
                 total: data.length,
                 completed,
@@ -71,12 +67,11 @@ const Dashboard = () => {
                 notStarted,
                 bookmarked,
                 avgLearningValue,
-                resourcesPerCollection,
                 mostUsedType
             });
             setTypeData(typeChartData);
         } catch (err) {
-            console.error(err);
+            console.error('Error fetching stats:', err);
         }
     };
 
@@ -98,9 +93,7 @@ const Dashboard = () => {
     const handleDelete = async (resourceId) => {
         try {
             await API.delete(`/resources/${resourceId}`);
-            if (isSearching) {
-                setSearchResults(searchResults.filter(r => r._id !== resourceId));
-            }
+            if (isSearching) setSearchResults(searchResults.filter(r => r._id !== resourceId));
             fetchStats();
         } catch (err) {
             console.error(err);
@@ -110,9 +103,7 @@ const Dashboard = () => {
     const handleUpdateStatus = async (resourceId, status) => {
         try {
             await API.put(`/resources/${resourceId}`, { status });
-            if (isSearching) {
-                setSearchResults(searchResults.map(r => r._id === resourceId ? { ...r, status } : r));
-            }
+            if (isSearching) setSearchResults(searchResults.map(r => r._id === resourceId ? { ...r, status } : r));
             fetchStats();
         } catch (err) {
             console.error(err);
@@ -121,36 +112,49 @@ const Dashboard = () => {
 
     const handleToggleBookmark = async (resourceId, currentStatus) => {
         try {
-            if (currentStatus) {
-                await API.post(`/bookmarks/${resourceId}`);
-            } else {
-                await API.delete(`/bookmarks/${resourceId}`);
-            }
-            if (isSearching) {
-                setSearchResults(searchResults.map(r => r._id === resourceId ? { ...r, bookmarked: currentStatus } : r));
-            }
+            if (currentStatus) await API.post(`/bookmarks/${resourceId}`);
+            else await API.delete(`/bookmarks/${resourceId}`);
+            if (isSearching) setSearchResults(searchResults.map(r => r._id === resourceId ? { ...r, bookmarked: currentStatus } : r));
         } catch (err) {
             console.error(err);
         }
     };
 
-    const data = [
+    const pieData = [
         { name: 'Completed', value: stats.completed },
         { name: 'In Progress', value: stats.inProgress },
         { name: 'Not Started', value: stats.notStarted },
     ].filter(item => item.value > 0);
 
+    const greeting = user?.username || user?.name || 'Developer';
+
+    let motivationCopy = `Ready to continue learning?`;
+    if (stats.inProgress > 0) {
+        motivationCopy = `You have ${stats.inProgress} pending resources. Continue learning.`;
+    } else if (stats.completed > 0) {
+        motivationCopy = `You completed ${stats.completed} resources this week.`;
+    } else if (stats.notStarted > 0) {
+        motivationCopy = `You have ${stats.notStarted} pending resources. Continue learning.`;
+    }
+
     return (
-        <div className="dashboard">
-            <div className="page-header">
-                <h2>Learning Dashboard</h2>
+        <div className="dashboard-page">
+            <div className="hero-header" style={{ marginBottom: '2.5rem', animation: 'fadeInUp 0.5s ease-out' }}>
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                    <h1 style={{ fontSize: '2.4rem', fontWeight: '800', margin: '0 0 0.5rem 0', color: 'var(--text-color)', letterSpacing: '-0.5px' }}>
+                        Good Evening, <span style={{ color: 'var(--text-color)', position: 'relative', display: 'inline-block' }}>{greeting}<div className="animated-underline-thin"></div></span> 👋
+                    </h1>
+                </div>
+                <p style={{ fontSize: '1rem', color: 'var(--text-muted)', margin: 0, fontWeight: 500 }}>
+                    {motivationCopy}
+                </p>
             </div>
 
             <SearchBar onSearch={handleSearch} />
 
             {isSearching ? (
-                <div className="search-results" style={{ marginTop: '2rem' }}>
-                    <h3>Search Results</h3>
+                <div className="search-results glass-panel" style={{ marginTop: '2rem', padding: '2rem' }}>
+                    <h3 className="section-title">Search Results</h3>
                     <div className="resource-grid">
                         {searchResults.map(resource => (
                             <ResourceCard
@@ -161,84 +165,61 @@ const Dashboard = () => {
                                 onToggleBookmark={handleToggleBookmark}
                             />
                         ))}
-                        {searchResults.length === 0 && <p>No resources found matching your search.</p>}
+                        {searchResults.length === 0 && <p className="text-muted">No resources found matching your search.</p>}
                     </div>
                 </div>
             ) : (
                 <>
-                    <div className="collection-grid" style={{ marginBottom: '2rem', marginTop: '2rem' }}>
-                        <div className="card" style={{ textAlign: 'center' }}>
-                            <h3 style={{ fontSize: '1rem', color: '#6b7280' }}>Total Resources</h3>
-                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>{stats.total}</p>
-                        </div>
-                        <div className="card" style={{ textAlign: 'center' }}>
-                            <h3 style={{ fontSize: '1rem', color: '#6b7280' }}>Completed</h3>
-                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--secondary-color)' }}>{stats.completed}</p>
-                        </div>
-                        <div className="card" style={{ textAlign: 'center' }}>
-                            <h3 style={{ fontSize: '1rem', color: '#6b7280' }}>In Progress</h3>
-                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#f59e0b' }}>{stats.inProgress}</p>
-                        </div>
-                        <div className="card" style={{ textAlign: 'center' }}>
-                            <h3 style={{ fontSize: '1rem', color: '#6b7280' }}>Not Started</h3>
-                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#6b7280' }}>{stats.notStarted}</p>
-                        </div>
-                        <div className="card" style={{ textAlign: 'center' }}>
-                            <h3 style={{ fontSize: '1rem', color: '#6b7280' }}>Bookmarked</h3>
-                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#fbbf24' }}>{stats.bookmarked} ★</p>
-                        </div>
-                        <div className="card" style={{ textAlign: 'center' }}>
-                            <h3 style={{ fontSize: '1rem', color: '#6b7280' }}>Avg. Learning Value</h3>
-                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#8b5cf6' }}>{stats.avgLearningValue} ★</p>
-                        </div>
-                        <div className="card" style={{ textAlign: 'center' }}>
-                            <h3 style={{ fontSize: '1rem', color: '#6b7280' }}>Resources / Collection</h3>
-                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#14b8a6' }}>{stats.resourcesPerCollection}</p>
-                        </div>
-                        <div className="card" style={{ textAlign: 'center' }}>
-                            <h3 style={{ fontSize: '1rem', color: '#6b7280' }}>Top Resource Type</h3>
-                            <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ec4899' }}>{stats.mostUsedType}</p>
-                        </div>
+                    <div className="stats-grid">
+                        <StatCard title="Total Resources" value={stats.total} icon={Library} colorClass="primary" />
+                        <StatCard title="Completed" value={stats.completed} icon={CheckCircle2} colorClass="success" />
+                        <StatCard title="In Progress" value={stats.inProgress} icon={Clock} colorClass="warning" />
+                        <StatCard title="Not Started" value={stats.notStarted} icon={CircleDashed} colorClass="danger" />
+                        <StatCard title="Bookmarked" value={stats.bookmarked} icon={Bookmark} colorClass="purple" />
+                        <StatCard title="Avg. Quality" value={stats.avgLearningValue + ' ★'} icon={Star} colorClass="success" />
+                        <StatCard title="Top Type" value={stats.mostUsedType} icon={PieChartIcon} colorClass="primary" />
                     </div>
 
-                    {stats.total > 0 ? (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem' }}>
-                            <div className="card" style={{ height: 400 }}>
-                                <h3 style={{ marginBottom: '1rem', textAlign: 'center' }}>Learning Progress</h3>
-                                <ResponsiveContainer width="100%" height="80%">
+                    <LearningHeatmap resources={allResources} />
+
+                    {stats.total > 0 && (
+                        <div className="charts-section">
+                            <div className="chart-card glass-panel" style={{ animation: 'fadeInUp 0.6s ease-out backwards' }}>
+                                <h3 className="chart-title">Learning Progress</h3>
+                                <ResponsiveContainer width="100%" height="90%">
                                     <PieChart>
                                         <Pie
-                                            data={data}
-                                            cx="50%"
-                                            cy="50%"
-                                            labelLine={false}
-                                            outerRadius={100}
-                                            fill="#8884d8"
+                                            data={pieData}
+                                            cx="50%" cy="50%"
+                                            innerRadius={75}
+                                            outerRadius={110}
+                                            paddingAngle={5}
                                             dataKey="value"
-                                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                            stroke="none"
                                         >
-                                            {data.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                            {pieData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} cornerRadius={6} />
                                             ))}
                                         </Pie>
-                                        <Tooltip formatter={(value) => [value, 'Resources']} />
-                                        <Legend />
+                                        <text x="50%" y="50%" textAnchor="middle" dominantBaseline="central">
+                                            <tspan x="50%" dy="-0.2em" fontSize="32" fontWeight="800" fill="var(--text-color)">{stats.completed}</tspan>
+                                            <tspan x="50%" dy="1.5em" fontSize="13" fill="var(--text-muted)">Completed</tspan>
+                                        </text>
+                                        <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--card-bg)' }} />
+                                        <Legend verticalAlign="bottom" height={36} wrapperStyle={{ paddingTop: '20px' }} />
                                     </PieChart>
                                 </ResponsiveContainer>
                             </div>
 
-                            <div className="card" style={{ height: 400 }}>
-                                <h3 style={{ marginBottom: '1rem', textAlign: 'center' }}>Resources By Type</h3>
-                                <ResponsiveContainer width="100%" height="80%">
-                                    <BarChart
-                                        data={typeData}
-                                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                                    >
-                                        <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                                        <XAxis dataKey="name" />
-                                        <YAxis allowDecimals={false} />
-                                        <Tooltip formatter={(value) => [value, 'Count']} cursor={{ fill: 'rgba(79, 70, 229, 0.1)' }} />
-                                        <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                            <div className="chart-card glass-panel" style={{ animation: 'fadeInUp 0.7s ease-out backwards' }}>
+                                <h3 className="chart-title">Resources By Type</h3>
+                                <ResponsiveContainer width="100%" height="90%">
+                                    <BarChart data={typeData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" opacity={0.1} vertical={false} />
+                                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-muted)' }} />
+                                        <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-muted)' }} />
+                                        <Tooltip cursor={{ fill: 'rgba(79, 70, 229, 0.05)' }} contentStyle={{ borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--card-bg)', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }} />
+                                        <Bar dataKey="count" radius={[6, 6, 6, 6]} barSize={40}>
                                             {typeData.map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={TYPE_COLORS[index % TYPE_COLORS.length]} />
                                             ))}
@@ -246,10 +227,6 @@ const Dashboard = () => {
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
-                        </div>
-                    ) : (
-                        <div className="card">
-                            <p>No resources found. Create a collection and add some resources to see your learning stats!</p>
                         </div>
                     )}
                 </>

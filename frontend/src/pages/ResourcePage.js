@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import API from '../services/api';
 import ResourceCard from '../components/ResourceCard';
+import EmptyState from '../components/EmptyState';
+import { Layers } from 'lucide-react';
 
 // Helper component for Star Rating
 const StarRatingInput = ({ rating, setRating }) => {
@@ -37,6 +39,7 @@ const ResourcePage = () => {
     const [activeStatus, setActiveStatus] = useState('All');
     const [activeType, setActiveType] = useState('All');
     const [allTags, setAllTags] = useState([]);
+    const [isRevisionMode, setIsRevisionMode] = useState(false);
 
     const [editingId, setEditingId] = useState(null);
 
@@ -49,6 +52,7 @@ const ResourcePage = () => {
     useEffect(() => {
         fetchCollectionDetails();
         fetchResources();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
     const fetchCollectionDetails = async () => {
@@ -84,8 +88,12 @@ const ResourcePage = () => {
             filtered = filtered.filter(r => r.type === activeType);
         }
 
+        if (isRevisionMode) {
+            filtered = filtered.filter(r => r.status !== 'Completed' || (r.rating > 0 && r.rating <= 3));
+        }
+
         setFilteredResources(filtered);
-    }, [resources, searchQuery, activeTag, activeStatus, activeType]);
+    }, [resources, searchQuery, activeTag, activeStatus, activeType, isRevisionMode]);
 
     const fetchResources = async () => {
         try {
@@ -200,7 +208,26 @@ const ResourcePage = () => {
                     <div style={{ fontSize: '0.85rem', color: '#6b7280', fontWeight: '500' }}>
                         <span style={{ cursor: 'pointer' }} onClick={() => window.history.back()}>Collections</span> &gt; {collectionTitle || 'Loading...'}
                     </div>
-                    <h2 style={{ margin: 0 }}>Collection Resources</h2>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <h2 style={{ margin: 0 }}>Collection Resources</h2>
+                        <button 
+                            onClick={() => setIsRevisionMode(!isRevisionMode)}
+                            style={{ 
+                                padding: '0.3rem 0.75rem', 
+                                background: isRevisionMode ? 'linear-gradient(135deg, #ef4444, #f97316)' : 'var(--bg-color)', 
+                                color: isRevisionMode ? 'white' : 'var(--text-color)',
+                                border: `1px solid ${isRevisionMode ? 'transparent' : 'var(--border-color)'}`,
+                                borderRadius: '999px',
+                                fontWeight: 'bold',
+                                fontSize: '0.85rem',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                boxShadow: isRevisionMode ? '0 4px 12px rgba(239, 68, 68, 0.3)' : 'none'
+                            }}
+                        >
+                            {isRevisionMode ? '🔥 Revision Active' : 'Enable Revision Mode'}
+                        </button>
+                    </div>
                 </div>
 
                 {/* Embedded Collection Search */}
@@ -311,9 +338,12 @@ const ResourcePage = () => {
                     />
                 ))}
                 {filteredResources.length === 0 && (
-                    <div style={{ gridColumn: '1 / -1', textAlign: 'center', marginTop: '3rem', color: 'var(--text-color)', padding: '3rem', background: 'var(--card-bg)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                        <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>No resources in this collection yet.</h3>
-                        <p style={{ color: '#6b7280' }}>Start adding resources to track your learning.</p>
+                    <div style={{ gridColumn: '1 / -1' }}>
+                        <EmptyState 
+                            title="No resources found" 
+                            message={isRevisionMode ? "You have no weak or incomplete resources matching this filter." : "Start tracking your learning by adding your first resource to this collection."}
+                            icon={Layers}
+                        />
                     </div>
                 )}
             </div>

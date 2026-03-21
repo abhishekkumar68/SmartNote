@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import API from '../services/api';
 import ResourceCard from '../components/ResourceCard';
+import EmptyState from '../components/EmptyState';
+import { Bookmark } from 'lucide-react';
 
 const Bookmarks = () => {
     const [resources, setResources] = useState([]);
@@ -64,7 +66,15 @@ const Bookmarks = () => {
                         onToggleBookmark={handleToggleBookmark}
                     />
                 ))}
-                {resources.length === 0 && <p>No bookmarked resources found.</p>}
+                {resources.length === 0 && (
+                    <div style={{ gridColumn: '1 / -1' }}>
+                        <EmptyState 
+                            title="No bookmarks yet" 
+                            message="Resources you bookmark will appear here for quick access later."
+                            icon={Bookmark}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );

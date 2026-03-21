@@ -8,6 +8,24 @@ const registerUser = async (req, res) => {
     try {
         const { name, email, password } = req.body;
 
+        if (!name || name.length < 3) {
+            return res.status(400).json({ message: "Username must be at least 3 characters long" });
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email || !emailRegex.test(email)) {
+            return res.status(400).json({ message: "Invalid email format" });
+        }
+
+        if (!password || password.length < 6) {
+            return res.status(400).json({ message: "Password must be at least 6 characters long" });
+        }
+
+        const specialCharRegex = /[!@#$%^&*(),.?":{}|<>]/;
+        if (!specialCharRegex.test(password)) {
+            return res.status(400).json({ message: "Password must contain at least one special character" });
+        }
+
         const userExists = await User.findOne({ email });
 
         if (userExists) {

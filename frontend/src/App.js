@@ -11,7 +11,7 @@ import CollectionPage from './pages/CollectionPage';
 import ResourcePage from './pages/ResourcePage';
 import ResourceDetailPage from './pages/ResourceDetailPage';
 import Bookmarks from './pages/Bookmarks';
-import './index.css';
+import useKeyboardShortcuts from './hooks/useKeyboardShortcuts';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
@@ -19,17 +19,20 @@ const ProtectedRoute = ({ children }) => {
   return user ? children : <Navigate to="/login" />;
 };
 
-const Layout = ({ children }) => (
-  <div className="app-container">
-    <Sidebar />
-    <div className="main-content">
-      <Navbar />
-      <div className="content-area">
-        {children}
+const Layout = ({ children }) => {
+  useKeyboardShortcuts();
+  return (
+    <div className="app-container">
+      <Sidebar />
+      <div className="main-content">
+        <Navbar />
+        <div className="content-area">
+          {children}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 function App() {
   return (

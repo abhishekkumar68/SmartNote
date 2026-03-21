@@ -1,0 +1,189 @@
+/* Sidebar.css */
+.sidebar.glass-panel {
+    width: 260px;
+    height: calc(100vh - 32px);
+    margin: 16px;
+    padding: 24px 16px;
+    position: sticky;
+    top: 16px;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.4s ease;
+    z-index: 100;
+    background: var(--sidebar-bg);
+}
+
+.sidebar.glass-panel.collapsed {
+    width: 88px;
+    padding: 24px 16px;
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    min-height: 32px;
+}
+
+.sidebar-usercard {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 24px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.sidebar.glass-panel.collapsed .sidebar-usercard {
+    justify-content: center;
+}
+
+[data-theme='light'] .sidebar-usercard {
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.avatar-wrapper {
+    position: relative;
+}
+
+.online-dot {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 10px;
+    height: 10px;
+    background: #10b981;
+    border-radius: 50%;
+    border: 2px solid var(--sidebar-bg);
+}
+
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), #8b5cf6);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+    flex-shrink: 0;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.user-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-color);
+    white-space: nowrap;
+}
+
+.user-role {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    opacity: 0.9;
+}
+
+.brand-logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0;
+    background: var(--primary-color);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+    animation: scaleIn 0.3s ease;
+}
+
+.collapse-btn {
+    background: var(--glass-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-color);
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+    margin-left: auto;
+}
+
+.collapse-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(79, 70, 229, 0.2);
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.menu-item a {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    border-radius: 0 8px 8px 0;
+    border-left: 3px solid transparent;
+    color: var(--text-muted);
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+}
+
+.menu-item a:hover {
+    background: rgba(79, 70, 229, 0.05);
+    color: var(--text-color);
+    border-left: 3px solid rgba(79, 70, 229, 0.5);
+    transform: translateX(4px);
+}
+
+.menu-item.active a {
+    background: linear-gradient(90deg, rgba(79, 70, 229, 0.05), transparent);
+    color: var(--text-color);
+    border-left: 3px solid var(--primary-color);
+    font-weight: 700;
+}
+
+.menu-icon {
+    min-width: 24px;
+    transition: transform 0.3s ease;
+    opacity: 0.8;
+}
+
+.menu-item.active a .menu-icon {
+    transform: scale(1.1);
+    opacity: 1;
+    color: var(--primary-color);
+}
+
+.menu-text {
+    margin-left: 16px;
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), margin 0.3s ease;
+}
+
+.sidebar.glass-panel.collapsed .menu-text {
+    opacity: 0;
+    margin-left: 0;
+    width: 0;
+    overflow: hidden;
+}

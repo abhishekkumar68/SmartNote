@@ -40,6 +40,7 @@ const ResourceDetailPage = () => {
 
     useEffect(() => {
         fetchResource();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
     const handleFormChange = (e) => {

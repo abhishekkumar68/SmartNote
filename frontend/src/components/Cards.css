@@ -1,0 +1,167 @@
+.interactive-blur {
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.resource-desc-clamped {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bookmark-btn-elegant {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bookmark-btn-elegant:hover {
+    background: rgba(251, 191, 36, 0.1);
+    transform: scale(1.1);
+}
+
+.active-glow {
+    filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.5));
+    animation: pop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+
+.star-rating {
+    display: flex;
+    gap: 0.25rem;
+}
+
+/* Base Card Scale Hover Polish */
+.resource-card, .collection-card {
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+    border: 1px solid var(--border-color);
+}
+
+.resource-card:hover, .collection-card:hover {
+    transform: scale(1.02) translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.02), inset 0 1px 0 rgba(255,255,255,0.4);
+    border-color: rgba(255,255,255,0.4);
+}
+
+/* Card Hierarchy Polish */
+.resource-card h3, .collection-card h3 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text-color);
+    line-height: 1.3;
+    letter-spacing: -0.4px;
+}
+
+/* Smart Tag Polish */
+.smart-tag {
+    background: rgba(71, 85, 105, 0.08); /* Slate neutral */
+    border: 1px solid rgba(71, 85, 105, 0.15);
+    color: var(--text-color);
+    font-weight: 500;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    transition: all 0.2s;
+    font-size: 0.75rem;
+}
+
+.smart-tag:hover {
+    border-color: var(--primary-color);
+    background: rgba(79, 70, 229, 0.08);
+    color: var(--primary-color);
+}
+
+[data-theme='dark'] .smart-tag {
+    background: rgba(148, 163, 184, 0.15);
+    color: #e2e8f0;
+}
+
+/* Pill animation */
+.animated-pill {
+    transition: all 0.4s ease;
+}
+
+.animated-pill:hover, .animated-pill:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.resource-card-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border-color);
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.resource-card:hover .resource-card-actions {
+    opacity: 1;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+    border: 1px solid transparent;
+}
+
+.open-btn {
+    background: rgba(79, 70, 229, 0.1);
+    color: var(--primary-color);
+}
+
+.open-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--primary-glow);
+}
+
+.icon-btn {
+    padding: 0.4rem;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+}
+
+.edit-btn:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.delete-btn:hover {
+    border-color: var(--danger-color);
+    color: var(--danger-color);
+    background: rgba(239, 68, 68, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Collection Card specific */
+.collection-card:hover .open-arrow {
+    transform: translateX(4px);
+    opacity: 1 !important;
+    color: var(--primary-color) !important;
+}
