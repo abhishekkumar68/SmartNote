@@ -55,6 +55,14 @@ const resourceSchema = new mongoose.Schema(
                 }
             }
         ],
+        lastAccessedAt: {
+            type: Date,
+            default: Date.now
+        },
+        accessCount: {
+            type: Number,
+            default: 0
+        }
     },
     {
         timestamps: true,

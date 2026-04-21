@@ -46,7 +46,7 @@
 .stat-danger .stat-icon-wrapper { background: rgba(239, 68, 68, 0.08); color: #f87171; }
 .stat-purple .stat-icon-wrapper { background: rgba(139, 92, 246, 0.08); color: #a78bfa; }
 
-[data-theme='dark'] .stat-icon-wrapper { opacity: 0.5; }
+.dark .stat-icon-wrapper { opacity: 0.5; }
 
 .stat-value {
     font-size: 2.5rem; /* Increased 15% from 2.2rem */

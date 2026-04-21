@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import API from '../services/api';
+import { ArrowLeft, ChevronRight } from 'lucide-react';
 
 const ResourceDetailPage = () => {
     const { id } = useParams();
@@ -41,6 +42,26 @@ const ResourceDetailPage = () => {
     useEffect(() => {
         fetchResource();
         // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [id]);
+
+    useEffect(() => {
+        let intervalId;
+        
+        const trackActivity = async () => {
+            // Only ping if window is active and visible
+            if (document.visibilityState === 'visible') {
+                try {
+                    await API.post('/activity/pulse', { seconds: 10, resourceId: id });
+                } catch (e) {
+                    console.error('Activity pulse failed', e);
+                }
+            }
+        };
+
+        // Ping backend every 10 seconds (in milliseconds)
+        intervalId = setInterval(trackActivity, 10000);
+
+        return () => clearInterval(intervalId);
     }, [id]);
 
     const handleFormChange = (e) => {
@@ -137,15 +158,27 @@ const ResourceDetailPage = () => {
         <div>
             <div className="page-header" style={{ flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    <div style={{ fontSize: '0.85rem', color: '#6b7280', fontWeight: '500' }}>
-                        <span style={{ cursor: 'pointer' }} onClick={() => navigate('/collections')}>Collections</span>
-                        &gt;
-                        <span style={{ cursor: 'pointer' }} onClick={() => navigate(`/collections/${resource.collectionId?._id}`)}>
-                            {' '} {collectionTitle || 'Loading...'}
-                        </span>
-                        &gt; {resource.title}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: '500' }}>
+                        <button 
+                            onClick={() => navigate(-1)} 
+                            style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.4rem', borderRadius: '8px', color: 'var(--text-color)', transition: 'all 0.2s', marginRight: '0.5rem', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' }} 
+                            onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--primary-color)'; e.currentTarget.style.color = 'var(--primary-color)'; }} 
+                            onMouseOut={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.color = 'var(--text-color)'; }}
+                            title="Go Back"
+                        >
+                            <ArrowLeft size={16} strokeWidth={2.5} />
+                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                            <span style={{ cursor: 'pointer', transition: 'color 0.2s' }} onClick={() => navigate('/collections')} onMouseOver={e => e.target.style.color = 'var(--primary-color)'} onMouseOut={e => e.target.style.color = ''}>Collections</span>
+                            <ChevronRight size={14} style={{ color: '#9ca3af', marginTop: '2px' }} />
+                            <span style={{ cursor: 'pointer', transition: 'color 0.2s' }} onClick={() => navigate(`/collections/${resource.collectionId?._id}`)} onMouseOver={e => e.target.style.color = 'var(--primary-color)'} onMouseOut={e => e.target.style.color = ''}>
+                                {collectionTitle || 'Loading...'}
+                            </span>
+                            <ChevronRight size={14} style={{ color: '#9ca3af', marginTop: '2px' }} />
+                            <span style={{ color: 'var(--primary-color)', fontWeight: '600' }}>{resource.title}</span>
+                        </div>
                     </div>
-                    <h2 style={{ margin: 0 }}>{resource.title} Detailed Knowledge</h2>
+                    <h2 style={{ margin: '0.5rem 0 0 0' }}>{resource.title} Detailed Knowledge</h2>
                 </div>
             </div>
 

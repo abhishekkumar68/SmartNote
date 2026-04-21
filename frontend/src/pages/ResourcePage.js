@@ -1,9 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import API from '../services/api';
 import ResourceCard from '../components/ResourceCard';
 import EmptyState from '../components/EmptyState';
-import { Layers } from 'lucide-react';
+import { Layers, ArrowLeft, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+const AUTO_TAG_MAP = {
+    "array": ["DSA", "Array", "Data Structure"],
+    "tree": ["DSA", "Tree", "Data Structure"],
+    "sql": ["DBMS", "SQL"],
+    "dbms": ["DBMS", "Database"],
+    "os": ["OS", "Operating System"],
+    "react": ["Frontend", "React"],
+    "node": ["Backend", "Node.js"],
+    "api": ["Backend", "API"]
+};
 
 // Helper component for Star Rating
 const StarRatingInput = ({ rating, setRating }) => {
@@ -30,6 +42,7 @@ const StarRatingInput = ({ rating, setRating }) => {
 
 const ResourcePage = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [resources, setResources] = useState([]);
     const [filteredResources, setFilteredResources] = useState([]);
 
@@ -39,13 +52,66 @@ const ResourcePage = () => {
     const [activeStatus, setActiveStatus] = useState('All');
     const [activeType, setActiveType] = useState('All');
     const [allTags, setAllTags] = useState([]);
-    const [isRevisionMode, setIsRevisionMode] = useState(false);
+    const [learningMode, setLearningMode] = useState(() => {
+        try {
+            const savedModes = JSON.parse(localStorage.getItem('collectionLearningModes') || '{}');
+            return savedModes[id] || 'Standard';
+        } catch { return 'Standard'; }
+    });
+
+    useEffect(() => {
+        try {
+            const savedModes = JSON.parse(localStorage.getItem('collectionLearningModes') || '{}');
+            setLearningMode(savedModes[id] || 'Standard');
+        } catch { }
+    }, [id]);
+
+    const updateLearningMode = (e) => {
+        const mode = e.target.value;
+        setLearningMode(mode);
+        try {
+            const savedModes = JSON.parse(localStorage.getItem('collectionLearningModes') || '{}');
+            if (mode === 'Standard') {
+                delete savedModes[id];
+            } else {
+                savedModes[id] = mode;
+            }
+            localStorage.setItem('collectionLearningModes', JSON.stringify(savedModes));
+            window.dispatchEvent(new Event('dashboardModesUpdated'));
+        } catch (err) { console.error(err); }
+    };
 
     const [editingId, setEditingId] = useState(null);
 
     const [formData, setFormData] = useState({
         title: '', description: '', type: 'Article', tags: '', status: 'Not Started', rating: 0
     });
+
+    const [suggestedTags, setSuggestedTags] = useState([]);
+
+    // Auto tag suggestion logic
+    useEffect(() => {
+        const text = (formData.title + ' ' + formData.description).toLowerCase();
+        const matches = new Set();
+        Object.keys(AUTO_TAG_MAP).forEach(key => {
+            if (text.includes(key)) {
+                AUTO_TAG_MAP[key].forEach(tag => matches.add(tag));
+            }
+        });
+
+        const existingTags = formData.tags ? formData.tags.split(',').map(t => t.trim().toLowerCase()) : [];
+        const filteredMatches = Array.from(matches).filter(tag => !existingTags.includes(tag.toLowerCase()));
+
+        setSuggestedTags(filteredMatches);
+    }, [formData.title, formData.description, formData.tags]);
+
+    const handleAddSuggestedTag = (tag) => {
+        const currentTags = formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(t => t) : [];
+        if (!currentTags.find(t => t.toLowerCase() === tag.toLowerCase())) {
+            currentTags.push(tag);
+            setFormData({ ...formData, tags: currentTags.join(', ') });
+        }
+    };
 
     const [collectionTitle, setCollectionTitle] = useState('');
 
@@ -88,12 +154,14 @@ const ResourcePage = () => {
             filtered = filtered.filter(r => r.type === activeType);
         }
 
-        if (isRevisionMode) {
+        if (learningMode === 'Revision') {
             filtered = filtered.filter(r => r.status !== 'Completed' || (r.rating > 0 && r.rating <= 3));
+        } else if (learningMode === 'Learning') {
+            filtered = filtered.filter(r => r.status === 'Not Started' || r.status === 'In Progress');
         }
 
         setFilteredResources(filtered);
-    }, [resources, searchQuery, activeTag, activeStatus, activeType, isRevisionMode]);
+    }, [resources, searchQuery, activeTag, activeStatus, activeType, learningMode]);
 
     const fetchResources = async () => {
         try {
@@ -205,28 +273,45 @@ const ResourcePage = () => {
         <div>
             <div className="page-header" style={{ flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    <div style={{ fontSize: '0.85rem', color: '#6b7280', fontWeight: '500' }}>
-                        <span style={{ cursor: 'pointer' }} onClick={() => window.history.back()}>Collections</span> &gt; {collectionTitle || 'Loading...'}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <h2 style={{ margin: 0 }}>Collection Resources</h2>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: '500' }}>
                         <button 
-                            onClick={() => setIsRevisionMode(!isRevisionMode)}
-                            style={{ 
-                                padding: '0.3rem 0.75rem', 
-                                background: isRevisionMode ? 'linear-gradient(135deg, #ef4444, #f97316)' : 'var(--bg-color)', 
-                                color: isRevisionMode ? 'white' : 'var(--text-color)',
-                                border: `1px solid ${isRevisionMode ? 'transparent' : 'var(--border-color)'}`,
+                            onClick={() => navigate(-1)} 
+                            style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.4rem', borderRadius: '8px', color: 'var(--text-color)', transition: 'all 0.2s', marginRight: '0.5rem', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' }} 
+                            onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--primary-color)'; e.currentTarget.style.color = 'var(--primary-color)'; }} 
+                            onMouseOut={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.color = 'var(--text-color)'; }}
+                            title="Go Back"
+                        >
+                            <ArrowLeft size={16} strokeWidth={2.5} />
+                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                            <span style={{ cursor: 'pointer', transition: 'color 0.2s' }} onClick={() => navigate('/collections')} onMouseOver={e => e.target.style.color = 'var(--primary-color)'} onMouseOut={e => e.target.style.color = ''}>Collections</span>
+                            <ChevronRight size={14} style={{ color: '#9ca3af', marginTop: '2px' }} />
+                            <span style={{ color: 'var(--primary-color)', fontWeight: '600' }}>{collectionTitle || 'Loading...'}</span>
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
+                        <h2 style={{ margin: 0 }}>Collection Resources</h2>
+                        <select
+                            value={learningMode}
+                            onChange={updateLearningMode}
+                            style={{
+                                padding: '0.3rem 0.75rem',
+                                background: learningMode === 'Revision' ? 'linear-gradient(135deg, #ef4444, #f97316)' : learningMode === 'Learning' ? 'linear-gradient(135deg, #3b82f6, #06b6d4)' : 'var(--bg-color)',
+                                color: learningMode !== 'Standard' ? 'white' : 'var(--text-color)',
+                                border: `1px solid ${learningMode !== 'Standard' ? 'transparent' : 'var(--border-color)'}`,
                                 borderRadius: '999px',
                                 fontWeight: 'bold',
                                 fontSize: '0.85rem',
                                 cursor: 'pointer',
+                                outline: 'none',
                                 transition: 'all 0.2s',
-                                boxShadow: isRevisionMode ? '0 4px 12px rgba(239, 68, 68, 0.3)' : 'none'
+                                boxShadow: learningMode === 'Revision' ? '0 4px 12px rgba(239, 68, 68, 0.3)' : learningMode === 'Learning' ? '0 4px 12px rgba(59, 130, 246, 0.3)' : 'none'
                             }}
                         >
-                            {isRevisionMode ? '🔥 Revision Active' : 'Enable Revision Mode'}
-                        </button>
+                            <option value="Standard" style={{ color: 'black' }}>Standard Mode</option>
+                            <option value="Learning" style={{ color: 'black' }}>📚 Learning Mode</option>
+                            <option value="Revision" style={{ color: 'black' }}>🔥 Revision Mode</option>
+                        </select>
                     </div>
                 </div>
 
@@ -247,7 +332,28 @@ const ResourcePage = () => {
                 <h3>{editingId ? 'Edit Resource' : 'Add Resource'}</h3>
                 <form onSubmit={handleCreateOrUpdate} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
                     <input type="text" name="title" placeholder="Title" value={formData.title} onChange={handleChange} required className="form-input" />
-                    <input type="text" name="tags" placeholder="Tags (comma separated)" value={formData.tags} onChange={handleChange} className="form-input" />
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                        <input type="text" name="tags" placeholder="Tags (comma separated)" value={formData.tags} onChange={handleChange} className="form-input" />
+                        {suggestedTags.length > 0 && (
+                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center', marginTop: '0.2rem' }}>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>Suggested:</span>
+                                {suggestedTags.map(tag => (
+                                    <motion.button
+                                        key={tag}
+                                        type="button"
+                                        onClick={() => handleAddSuggestedTag(tag)}
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="tag smart-tag"
+                                        style={{ background: 'rgba(79, 70, 229, 0.1)', cursor: 'pointer', border: '1px dashed var(--primary-color)', padding: '0.1rem 0.5rem', fontSize: '0.7rem' }}
+                                    >
+                                        + {tag}
+                                    </motion.button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                     <select name="type" value={formData.type} onChange={handleChange} className="form-input">
                         <option value="Article">Article</option>
                         <option value="Video">Video</option>
@@ -339,9 +445,9 @@ const ResourcePage = () => {
                 ))}
                 {filteredResources.length === 0 && (
                     <div style={{ gridColumn: '1 / -1' }}>
-                        <EmptyState 
-                            title="No resources found" 
-                            message={isRevisionMode ? "You have no weak or incomplete resources matching this filter." : "Start tracking your learning by adding your first resource to this collection."}
+                        <EmptyState
+                            title="No resources found"
+                            message={learningMode === 'Revision' ? "You have no weak or incomplete resources matching this filter." : learningMode === 'Learning' ? "You have no pending or new resources to learn." : "Start tracking your learning by adding your first resource to this collection."}
                             icon={Layers}
                         />
                     </div>

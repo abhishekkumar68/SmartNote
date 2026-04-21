@@ -25,13 +25,23 @@ export const AuthProvider = ({ children }) => {
         await API.post("/auth/register", { name, email, password });
     };
 
+    const updatePhoto = async (formData) => {
+        const { data } = await API.put("/auth/profile/photo", formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+        localStorage.setItem("userInfo", JSON.stringify(data));
+        setUser(data);
+    };
+
     const logout = () => {
         localStorage.removeItem("userInfo");
         setUser(null);
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, register, updatePhoto, logout, loading }}>
             {!loading && children}
         </AuthContext.Provider>
     );

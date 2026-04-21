@@ -1,5 +1,38 @@
 const Resource = require("../models/Resource");
 const Collection = require("../models/Collection");
+const ActivityLog = require("../models/ActivityLog");
+
+const AUTO_TAG_MAP = {
+    'dsa': 'DSA', 'algorithm': 'DSA', 'tree': 'Trees', 'sort': 'Sorting',
+    'dbms': 'DBMS', 'database': 'DBMS', 'sql': 'DBMS', 'mongo': 'DBMS',
+    'os': 'OS', 'operating system': 'OS',
+    'react': 'Frontend', 'css': 'Frontend', 'html': 'Frontend',
+    'node': 'Backend', 'api': 'Backend', 'express': 'Backend',
+    'system design': 'System Design', 'cloud': 'Cloud', 'aws': 'Cloud'
+};
+
+const getAutoTags = (text) => {
+    if (!text) return [];
+    const lower = text.toLowerCase();
+    const tags = new Set();
+    Object.keys(AUTO_TAG_MAP).forEach(key => {
+        if (lower.includes(key)) tags.add(AUTO_TAG_MAP[key]);
+    });
+    return Array.from(tags);
+};
+
+const logUserActivity = async (userId, actionStr, resourceId = null) => {
+    try {
+        const dateKey = new Date().toDateString();
+        // Avoid duplicate spam on the same day for the exact same resource read
+        const exists = await ActivityLog.findOne({ userId, actionStr, resourceId, dateKey });
+        if (!exists) {
+            await ActivityLog.create({ userId, actionStr, resourceId, dateKey });
+        }
+    } catch (err) {
+        console.error("Activity logging error:", err);
+    }
+};
 
 // Helper to check user ownership
 const verifyCollectionOwner = async (collectionId, userId) => {
@@ -56,6 +89,13 @@ const getResourceById = async (req, res) => {
         const isOwner = await verifyCollectionOwner(resource.collectionId._id, req.user._id);
         if (!isOwner) return res.status(401).json({ message: "Not authorized" });
 
+        // Spaced Repetition / Telemetry updates
+        resource.accessCount = (resource.accessCount || 0) + 1;
+        resource.lastAccessedAt = new Date();
+        await resource.save();
+
+        logUserActivity(req.user._id, "STUDIED_RESOURCE", resource._id);
+
         res.json(resource);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -97,13 +137,23 @@ const createResource = async (req, res) => {
             try {
                 parsedTags = JSON.parse(tags);
             } catch (e) {
-                parsedTags = tags.split(',').map(t => t.trim());
+                parsedTags = tags.split(',').map(t => t.trim()).filter(Boolean);
             }
         }
+        
+        // Auto Tag System Logic 
+        const combinedText = `${title} ${description}`;
+        const autoSuggestedTags = getAutoTags(combinedText);
+        
+        // Merge generated tags with user existing tags seamlessly
+        const finalTags = Array.from(new Set([...(parsedTags || []), ...autoSuggestedTags]));
 
         const resource = await Resource.create({
-            collectionId, title, description, type, link, fileUrl, tags: parsedTags, status, rating, bookmarked, notes
+            collectionId, title, description, type, link, fileUrl, tags: finalTags, status, rating, bookmarked, notes
         });
+        
+        logUserActivity(req.user._id, "CREATED_RESOURCE", resource._id);
+
         const populated = await Resource.findById(resource._id).populate('collectionId', 'title');
         res.status(201).json(populated);
     } catch (error) {

@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+import API from '../../services/api';
 import './LearningHeatmap.css';
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -9,26 +10,32 @@ const RANGE_MAP = {
     '90days': { days: 89, label: '90 days' }
 };
 
-const LearningHeatmap = ({ resources = [] }) => {
+const LearningHeatmap = () => {
     const [timeRange, setTimeRange] = useState('1year');
     const [tooltip, setTooltip] = useState({ show: false, x: 0, y: 0, text1: '', text2: '' });
+    const [activityLogs, setActivityLogs] = useState([]);
+
+    useEffect(() => {
+        const fetchHistory = async () => {
+            try {
+                const { data } = await API.get('/activity/history');
+                setActivityLogs(data);
+            } catch (err) {
+                console.error('Failed to fetch activity history:', err);
+            }
+        };
+        fetchHistory();
+    }, []);
 
     const activityMap = useMemo(() => {
         const map = {};
-        resources.forEach(r => {
-            if (r.createdAt) {
-                const dateStr = new Date(r.createdAt).toDateString();
-                map[dateStr] = (map[dateStr] || 0) + 1;
-            }
-            if (r.updatedAt && r.updatedAt !== r.createdAt) {
-                const dateStr = new Date(r.updatedAt).toDateString();
-                map[dateStr] = (map[dateStr] || 0) + 1;
-            }
+        activityLogs.forEach(log => {
+            map[log.dateKey] = (map[log.dateKey] || 0) + log.durationSeconds;
         });
         return map;
-    }, [resources]);
+    }, [activityLogs]);
 
-    const { gridData, totalActions, activeDays, maxStreak, consistencyScore } = useMemo(() => {
+    const { gridData, goalMetDays, activeDays, maxStreak, consistencyScore } = useMemo(() => {
         const today = new Date();
         today.setHours(0,0,0,0);
         
@@ -48,20 +55,23 @@ const LearningHeatmap = ({ resources = [] }) => {
         let lastMonth = -1;
         
         // Metrics track
-        let actions = 0;
+        let goalMetDays = 0;
         let activeD = 0;
         let currentStreak = 0;
         let mStreak = 0;
 
-        // Iterate sequentially through the exact requested period to calculate precise metrics
-        // We only calculate metrics for days within the requested strict range
         let metricDate = new Date(startDate);
         while (metricDate <= today) {
             const dateStr = metricDate.toDateString();
-            const count = activityMap[dateStr] || 0;
-            if (count > 0) {
-                actions += count;
+            const durationSec = activityMap[dateStr] || 0;
+            
+            if (durationSec > 0) {
                 activeD += 1;
+            }
+
+            // User requirement: minimum 30 min (1800 sec) in a day to count as "Learning"
+            if (durationSec >= 1800) {
+                goalMetDays += 1;
                 currentStreak += 1;
                 if (currentStreak > mStreak) mStreak = currentStreak;
             } else {
@@ -92,37 +102,42 @@ const LearningHeatmap = ({ resources = [] }) => {
         }
 
         const exactDays = config.days + 1;
-        let cScore = Math.min(Math.round((activeD / exactDays) * 100), 100);
+        let cScore = Math.min(Math.round((goalMetDays / exactDays) * 100), 100);
 
         return { 
             gridData: { weeks, monthOffsets },
-            totalActions: actions,
+            goalMetDays,
             activeDays: activeD,
             maxStreak: mStreak,
             consistencyScore: cScore
         };
     }, [timeRange, activityMap]);
 
-    const getIntensityClass = (count) => {
-        if (count === 0) return 'level-0';
-        if (count === 1) return 'level-1';
-        if (count === 2) return 'level-2';
-        if (count >= 3 && count < 5) return 'level-3';
-        if (count >= 5) return 'level-4';
-        return 'level-0';
+    const getIntensityClass = (durationSec) => {
+        if (durationSec === 0) return 'level-0';
+        if (durationSec < 900) return 'level-1';  // < 15 mins (Faint)
+        if (durationSec < 1800) return 'level-2'; // 15-30 mins
+        if (durationSec < 3600) return 'level-3'; // 30-60 mins (Goal Unlocked!)
+        return 'level-4'; // 60+ mins
     };
 
-    const handleMouseEnter = (e, dateStr, count, dateObj) => {
+    const handleMouseEnter = (e, dateStr, durationSec, dateObj) => {
         const rect = e.target.getBoundingClientRect();
         
         let formattedDate = `${MONTH_LABELS[dateObj.getMonth()]} ${dateObj.getDate()}, ${dateObj.getFullYear()}`;
         
+        let text2 = '0 mins';
+        if (durationSec > 0) {
+            const mins = Math.floor(durationSec / 60);
+            text2 = `${mins} min${mins !== 1 ? 's' : ''}`;
+        }
+
         setTooltip({
             show: true,
             x: rect.left + (rect.width / 2),
             y: rect.top - 8,
             text1: formattedDate,
-            text2: `${count} learning action${count !== 1 ? 's' : ''}`
+            text2: text2
         });
     };
 
@@ -134,13 +149,13 @@ const LearningHeatmap = ({ resources = [] }) => {
         <div className="learning-heatmap-container data-panel">
             <div className="heatmap-header-analytics">
                 <div className="heatmap-header-left">
-                    <h3 className="analytics-primary-stat">{totalActions} learning actions in the past {RANGE_MAP[timeRange].label}</h3>
+                    <h3 className="analytics-primary-stat">{goalMetDays} times you met the 30-min goal this {RANGE_MAP[timeRange].label}</h3>
                 </div>
                 
                 <div className="heatmap-header-right">
                     <div className="analytics-metric">
-                        <span className="metric-label">Active Learning Days:</span>
-                        <span className="metric-value">{activeDays}</span>
+                        <span className="metric-label">30+ Min Goal Days:</span>
+                        <span className="metric-value">{goalMetDays}</span>
                     </div>
                     <div className="analytics-metric">
                         <span className="metric-label">Longest Learning Streak:</span>
@@ -176,12 +191,12 @@ const LearningHeatmap = ({ resources = [] }) => {
                                 {week.map((date, dIdx) => {
                                     if (!date) return <div key={`empty-${wIdx}-${dIdx}`} className="heatmap-cell empty"></div>;
                                     const dateStr = date.toDateString();
-                                    const count = activityMap[dateStr] || 0;
+                                    const durationSec = activityMap[dateStr] || 0;
                                     return (
                                         <div 
                                             key={dIdx} 
-                                            className={`heatmap-cell ${getIntensityClass(count)}`}
-                                            onMouseEnter={(e) => handleMouseEnter(e, dateStr, count, date)}
+                                            className={`heatmap-cell ${getIntensityClass(durationSec)}`}
+                                            onMouseEnter={(e) => handleMouseEnter(e, dateStr, durationSec, date)}
                                             onMouseLeave={handleMouseLeave}
                                         ></div>
                                     );

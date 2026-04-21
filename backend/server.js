@@ -23,6 +23,7 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/collections", require("./routes/collectionRoutes"));
 app.use("/api/resources", require("./routes/resourceRoutes"));
 app.use("/api/bookmarks", require("./routes/bookmarkRoutes"));
+app.use("/api/activity", require("./routes/activityRoutes"));
 
 app.get("/", (req, res) => {
   res.send("SmartNote Backend Running");

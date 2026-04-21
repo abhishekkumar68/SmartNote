@@ -1,44 +1,31 @@
 import React from 'react';
-import { PackageOpen } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { FolderPlus } from 'lucide-react';
+import './EmptyState.css';
 
-const EmptyState = ({ title, message, ctaText, ctaLink, icon: Icon = PackageOpen }) => {
-    const navigate = useNavigate();
+const EmptyState = ({ title, message, actionText, onAction, icon: Icon = FolderPlus }) => {
     return (
-        <div className="glass-panel" style={{
-            padding: '4rem 2rem',
-            textAlign: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            border: '1px dashed var(--border-color)',
-            animation: 'fadeInUp 0.5s ease-out',
-            margin: '2rem 0'
-        }}>
-            <div style={{
-                background: 'rgba(79, 70, 229, 0.1)',
-                padding: '1.5rem',
-                borderRadius: '50%',
-                color: 'var(--primary-color)',
-                marginBottom: '1.5rem'
-            }}>
-                <Icon size={48} strokeWidth={1.5} />
+        <motion.div 
+            className="empty-state-container"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+        >
+            <div 
+                className="empty-state-icon-wrapper" 
+                onClick={onAction}
+                style={{ cursor: onAction ? 'pointer' : 'default', transition: 'transform 0.2s' }}
+            >
+                <Icon size={48} className="empty-state-icon" />
             </div>
-            <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--text-color)' }}>{title}</h3>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', maxWidth: '400px', lineHeight: 1.6 }}>
-                {message}
-            </p>
-            {ctaText && ctaLink && (
-                <button 
-                    onClick={() => navigate(ctaLink)} 
-                    className="btn-primary"
-                    style={{ fontSize: '1rem', padding: '0.75rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                >
-                    {ctaText}
+            <h3 className="empty-state-title">{title}</h3>
+            <p className="empty-state-message">{message}</p>
+            {actionText && onAction && (
+                <button onClick={onAction} className="btn-primary empty-state-btn">
+                    {actionText}
                 </button>
             )}
-        </div>
+        </motion.div>
     );
 };
 

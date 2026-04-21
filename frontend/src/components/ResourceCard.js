@@ -1,11 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star, FileText, Video, Github, BookOpen, FileCode, Link, ExternalLink, Edit2, Trash2, Bookmark } from 'lucide-react';
+import { motion } from 'framer-motion';
 import './Cards.css';
 
 const ResourceCard = ({ resource, onDelete, onUpdateStatus, onToggleBookmark, onEdit }) => {
     const navigate = useNavigate();
-    
+
     const getBadgeClass = (status) => {
         switch (status) {
             case 'Completed': return 'status-completed';
@@ -31,9 +32,9 @@ const ResourceCard = ({ resource, onDelete, onUpdateStatus, onToggleBookmark, on
             onChange={(e) => { e.stopPropagation(); onUpdateStatus(resource._id, e.target.value); }}
             onClick={(e) => e.stopPropagation()}
             className={`badge ${getBadgeClass(resource.status)} animated-pill`}
-            style={{ 
-                border: 'none', 
-                fontWeight: '600', 
+            style={{
+                border: 'none',
+                fontWeight: '600',
                 cursor: 'pointer',
                 outline: 'none',
                 paddingRight: '0.75rem'
@@ -46,7 +47,13 @@ const ResourceCard = ({ resource, onDelete, onUpdateStatus, onToggleBookmark, on
     );
 
     return (
-        <div className="card resource-card interactive-blur">
+        <motion.div
+            className="card resource-card interactive-blur"
+            whileHover={{ scale: 1.02, y: -4 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+        >
             <div className="card-header pb-2" style={{ alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                 <div style={{ display: 'flex', gap: '0.75rem', maxWidth: '85%' }}>
                     <div className="resource-icon-box" style={{ color: 'var(--primary-color)', marginTop: '2px' }}>
@@ -66,9 +73,9 @@ const ResourceCard = ({ resource, onDelete, onUpdateStatus, onToggleBookmark, on
                     className={`bookmark-btn-elegant ${resource.bookmarked ? 'active-glow' : ''}`}
                     title={resource.bookmarked ? "Remove Bookmark" : "Bookmark"}
                 >
-                    <Bookmark 
-                        size={20} 
-                        fill={resource.bookmarked ? "currentColor" : "none"} 
+                    <Bookmark
+                        size={20}
+                        fill={resource.bookmarked ? "currentColor" : "none"}
                         color={resource.bookmarked ? "#fbbf24" : "var(--text-muted)"}
                     />
                 </button>
@@ -89,7 +96,7 @@ const ResourceCard = ({ resource, onDelete, onUpdateStatus, onToggleBookmark, on
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
                 <div className="star-rating">
                     {[1, 2, 3, 4, 5].map(star => (
-                        <Star 
+                        <Star
                             key={star}
                             size={16}
                             fill={star <= resource.rating ? "#fbbf24" : "none"}
@@ -102,8 +109,8 @@ const ResourceCard = ({ resource, onDelete, onUpdateStatus, onToggleBookmark, on
             </div>
 
             <div className="resource-card-actions">
-                <button 
-                    onClick={(e) => { e.stopPropagation(); navigate(`/resource-details/${resource._id}`); }} 
+                <button
+                    onClick={(e) => { e.stopPropagation(); navigate(`/resource-details/${resource._id}`); }}
                     className="action-btn open-btn"
                 >
                     <ExternalLink size={16} /> Open
@@ -120,7 +127,7 @@ const ResourceCard = ({ resource, onDelete, onUpdateStatus, onToggleBookmark, on
                     </button>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 };
 

@@ -1,66 +1,66 @@
 :root {
-  /* Premium SaaS Colors */
-  --bg-color: #f8fafc;
-  --bg-gradient: linear-gradient(135deg, #f0f4f8 0%, #eef2f6 100%);
-  --text-color: #0f172a;
-  --text-muted: #64748b;
-  --primary-color: #4f46e5;
-  --primary-hover: #4338ca;
-  --primary-glow: rgba(79, 70, 229, 0.25);
-  --secondary-color: #10b981;
-  --accent-color: #8b5cf6;
+  /* Enterprise SaaS Colors */
+  --bg-color: #f9fafb;
+  --bg-gradient: #f9fafb; /* Removed playful gradient */
+  --text-color: #111827;
+  --text-muted: #6b7280;
   
-  /* Glassmorphism */
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.5);
-  --sidebar-bg: rgba(255, 255, 255, 0.75);
-  --card-bg: rgba(255, 255, 255, 0.85);
-  --border-color: rgba(226, 232, 240, 0.8);
+  /* Primary deep slate/indigo for serious tone */
+  --primary-color: #0f172a;
+  --primary-hover: #1e293b;
+  --primary-glow: rgba(15, 23, 42, 0.1);
+  --secondary-color: #059669; /* Crisp standard success */
+  --accent-color: #3b82f6; /* Standard link blue */
   
-  --danger-color: #ef4444;
+  /* Solid professional structure over Glass */
+  --glass-bg: #ffffff;
+  --glass-border: #e5e7eb;
+  --sidebar-bg: #ffffff;
+  --card-bg: #ffffff;
+  --border-color: #e5e7eb;
+  
+  --danger-color: #dc2626;
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   
-  /* Premium Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
-  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.08), 0 4px 8px -4px rgba(0, 0, 0, 0.04);
-  --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 0 15px var(--primary-glow);
+  /* Crisp, minimal shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   
-  /* Smooth Corners */
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
+  /* Professional Geometric Corners */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
 }
 
 :root.dark {
   --bg-color: #09090b;
-  --bg-gradient: linear-gradient(135deg, #09090b 0%, #111116 100%);
-  --text-color: #f8fafc;
-  --text-muted: #94a3b8;
-  --primary-color: #818cf8;
-  --primary-hover: #6366f1;
-  --primary-glow: rgba(99, 102, 241, 0.2);
-  --secondary-color: #34d399;
-  --accent-color: #a78bfa;
+  --bg-gradient: #09090b;
+  --text-color: #f9fafb;
+  --text-muted: #9ca3af;
+  --primary-color: #f8fafc;
+  --primary-hover: #e2e8f0;
+  --primary-glow: rgba(255, 255, 255, 0.1);
+  --secondary-color: #10b981;
+  --accent-color: #60a5fa;
   
-  --glass-bg: rgba(15, 23, 42, 0.6);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --sidebar-bg: rgba(15, 23, 42, 0.7);
-  --card-bg: rgba(30, 41, 59, 0.6);
-  --border-color: rgba(255, 255, 255, 0.1);
+  --glass-bg: #18191c;
+  --glass-border: #27272a;
+  --sidebar-bg: #131415;
+  --card-bg: #18191c;
+  --border-color: #27272a;
   
-  --danger-color: #f87171;
-  --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2), 0 0 20px var(--primary-glow);
+  --danger-color: #ef4444;
+  --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
-/* Base Glassmorphism utility classes */
+/* Base Panel utility classes */
 .glass-panel {
   background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
   border-radius: var(--radius-lg);
 }
 
@@ -618,4 +618,103 @@ a:hover {
   box-shadow: var(--shadow-hover);
   position: relative;
   animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Auth Loading Spinner */
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* --- Premium Split-Screen Authentication UI --- */
+.auth-layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100vw;
+  background: var(--bg-color);
+  overflow: hidden;
+}
+
+.auth-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  z-index: 2;
+}
+
+.auth-right {
+  flex: 1; 
+  background: #0f172a; /* Solid Slate for Enterprise feel */
+  display: none; 
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  border-left: 1px solid var(--border-color);
+}
+
+@media (min-width: 900px) {
+  .auth-right {
+    display: flex;
+  }
+}
+
+.auth-glass-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  padding: 3rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  width: 100%;
+  max-width: 440px;
+  animation: fadeInUp 0.3s ease-out backwards;
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-branding {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin-bottom: 2rem;
+  text-align: left;
+  letter-spacing: -0.5px;
+}
+
+.auth-right-content {
+  position: relative;
+  z-index: 10;
+  text-align: left;
+  max-width: 80%;
+  animation: scaleIn 0.5s ease-out backwards;
+}
+
+.auth-right-content h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+  letter-spacing: -1px;
+}
+
+.auth-right-content p {
+  font-size: 1.1rem;
+  opacity: 0.8;
+  line-height: 1.6;
+  max-width: 90%;
 }

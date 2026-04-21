@@ -6,17 +6,25 @@ import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import CollectionPage from './pages/CollectionPage';
 import ResourcePage from './pages/ResourcePage';
 import ResourceDetailPage from './pages/ResourceDetailPage';
 import Bookmarks from './pages/Bookmarks';
+import ActiveModesPage from './pages/ActiveModesPage';
 import useKeyboardShortcuts from './hooks/useKeyboardShortcuts';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
   if (loading) return <div>Loading...</div>;
   return user ? children : <Navigate to="/login" />;
+};
+
+const HomeRoute = ({ children }) => {
+  const { user, loading } = useContext(AuthContext);
+  if (loading) return <div>Loading...</div>;
+  return user ? children : <Landing />;
 };
 
 const Layout = ({ children }) => {
@@ -44,7 +52,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route
               path="/"
-              element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>}
+              element={<HomeRoute><Layout><Dashboard /></Layout></HomeRoute>}
             />
             <Route
               path="/collections"
@@ -61,6 +69,10 @@ function App() {
             <Route
               path="/bookmarks"
               element={<ProtectedRoute><Layout><Bookmarks /></Layout></ProtectedRoute>}
+            />
+            <Route
+              path="/active-modes"
+              element={<ProtectedRoute><Layout><ActiveModesPage /></Layout></ProtectedRoute>}
             />
           </Routes>
         </Router>

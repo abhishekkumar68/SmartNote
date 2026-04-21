@@ -1,13 +1,17 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Library, Bookmark, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Library, Bookmark, ChevronLeft, ChevronRight, Camera } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import './Sidebar.css';
 
 const Sidebar = () => {
     const location = useLocation();
-    const { user } = useContext(AuthContext);
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    const { user, updatePhoto } = useContext(AuthContext);
+    const fileInputRef = useRef(null);
+    const [isCollapsed, setIsCollapsed] = useState(() => {
+        const saved = localStorage.getItem('sidebarCollapsed');
+        return saved === 'true';
+    });
 
     const isActive = (path) => {
         if (path === '/') return location.pathname === '/';
@@ -16,13 +20,36 @@ const Sidebar = () => {
 
     const getInitials = (name) => name ? name.charAt(0).toUpperCase() : 'U';
 
+    const getImageUrl = (path) => {
+        if (!path) return '';
+        const baseUrl = process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL.replace('/api', '') : 'http://localhost:5000';
+        return `${baseUrl}${path}`;
+    };
+
+    const handlePhotoChange = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append("photo", file);
+            try {
+                await updatePhoto(formData);
+            } catch (error) {
+                console.error("Failed to update photo", error);
+            }
+        }
+    };
+
     return (
         <aside className={`sidebar glass-panel ${isCollapsed ? 'collapsed' : ''}`}>
             <div className="sidebar-header">
                 {!isCollapsed && <h2 className="brand-logo">SmartNote</h2>}
                 <button 
                     className="collapse-btn" 
-                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    onClick={() => {
+                        const newState = !isCollapsed;
+                        setIsCollapsed(newState);
+                        localStorage.setItem('sidebarCollapsed', newState);
+                    }}
                     aria-label="Toggle Sidebar"
                     title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
                 >
@@ -31,9 +58,23 @@ const Sidebar = () => {
             </div>
 
             <div className="sidebar-usercard">
-                <div className="avatar-wrapper">
+                <div className="avatar-wrapper" onClick={() => fileInputRef.current?.click()}>
+                    <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handlePhotoChange} 
+                        style={{ display: 'none' }}
+                        accept="image/*"
+                    />
                     <div className="avatar-circle">
-                        {getInitials(user?.username || user?.name)}
+                        {user?.profilePhoto ? (
+                            <img src={getImageUrl(user.profilePhoto)} alt="Profile" className="profile-image" />
+                        ) : (
+                            getInitials(user?.username || user?.name)
+                        )}
+                        <div className="avatar-edit-overlay">
+                            <Camera size={16} />
+                        </div>
                     </div>
                     <div className="online-dot"></div>
                 </div>
