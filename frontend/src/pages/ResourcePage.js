@@ -45,6 +45,7 @@ const ResourcePage = () => {
     const navigate = useNavigate();
     const [resources, setResources] = useState([]);
     const [filteredResources, setFilteredResources] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     // Tag filtering & search states
     const [searchQuery, setSearchQuery] = useState('');
@@ -164,6 +165,7 @@ const ResourcePage = () => {
     }, [resources, searchQuery, activeTag, activeStatus, activeType, learningMode]);
 
     const fetchResources = async () => {
+        setLoading(true);
         try {
             const { data } = await API.get(`/resources/${id}`);
             setResources(data);
@@ -176,6 +178,8 @@ const ResourcePage = () => {
             setAllTags(Array.from(tagsSet));
         } catch (err) {
             console.error(err);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -433,24 +437,36 @@ const ResourcePage = () => {
             </div>
 
             <div className="resource-grid">
-                {filteredResources.map(resource => (
-                    <ResourceCard
-                        key={resource._id}
-                        resource={resource}
-                        onEdit={() => startEdit(resource)}
-                        onDelete={handleDelete}
-                        onUpdateStatus={handleUpdateStatus}
-                        onToggleBookmark={handleToggleBookmark}
-                    />
-                ))}
-                {filteredResources.length === 0 && (
-                    <div style={{ gridColumn: '1 / -1' }}>
-                        <EmptyState
-                            title="No resources found"
-                            message={learningMode === 'Revision' ? "You have no weak or incomplete resources matching this filter." : learningMode === 'Learning' ? "You have no pending or new resources to learn." : "Start tracking your learning by adding your first resource to this collection."}
-                            icon={Layers}
-                        />
-                    </div>
+                {loading ? (
+                    [1, 2, 3].map(i => (
+                        <div key={i} className="card" style={{ minHeight: '140px', opacity: 0.5, animation: 'pulse 1.5s ease-in-out infinite' }}>
+                            <div style={{ height: '1rem', background: 'var(--border-color)', borderRadius: '4px', marginBottom: '0.75rem', width: '65%' }} />
+                            <div style={{ height: '0.75rem', background: 'var(--border-color)', borderRadius: '4px', width: '85%', marginBottom: '0.5rem' }} />
+                            <div style={{ height: '0.75rem', background: 'var(--border-color)', borderRadius: '4px', width: '50%' }} />
+                        </div>
+                    ))
+                ) : (
+                    <>
+                        {filteredResources.map(resource => (
+                            <ResourceCard
+                                key={resource._id}
+                                resource={resource}
+                                onEdit={() => startEdit(resource)}
+                                onDelete={handleDelete}
+                                onUpdateStatus={handleUpdateStatus}
+                                onToggleBookmark={handleToggleBookmark}
+                            />
+                        ))}
+                        {filteredResources.length === 0 && (
+                            <div style={{ gridColumn: '1 / -1' }}>
+                                <EmptyState
+                                    title="No resources found"
+                                    message={learningMode === 'Revision' ? "You have no weak or incomplete resources matching this filter." : learningMode === 'Learning' ? "You have no pending or new resources to learn." : "Start tracking your learning by adding your first resource to this collection."}
+                                    icon={Layers}
+                                />
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </div>

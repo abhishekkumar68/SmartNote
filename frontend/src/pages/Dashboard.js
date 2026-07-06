@@ -19,6 +19,7 @@ const Dashboard = () => {
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
     const [allResources, setAllResources] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
         total: 0,
         completed: 0,
@@ -37,6 +38,7 @@ const Dashboard = () => {
     }, []);
 
     const fetchStats = async () => {
+        setLoading(true);
         try {
             const { data } = await API.get('/resources');
             setAllResources(data);
@@ -76,6 +78,8 @@ const Dashboard = () => {
             setTypeData(typeChartData);
         } catch (err) {
             console.error('Error fetching stats:', err);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -215,7 +219,7 @@ const Dashboard = () => {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
                             {activeModesCount.learning > 0 && <span style={{ fontSize: '0.9rem', color: '#3b82f6', fontWeight: '600' }}><span style={{ fontSize: '1.1rem', marginRight: '4px' }}>📚</span> {activeModesCount.learning} Collection{activeModesCount.learning > 1 ? 's' : ''} in Learning Mode</span>}
                             {activeModesCount.revision > 0 && <span style={{ fontSize: '0.9rem', color: '#ef4444', fontWeight: '600' }}><span style={{ fontSize: '1.1rem', marginRight: '4px' }}>🔥</span> {activeModesCount.revision} Collection{activeModesCount.revision > 1 ? 's' : ''} in Revision Mode</span>}
-                            <button onClick={() => navigate('/active-modes')} style={{ marginLeft: '1rem', fontSize: '0.85rem', padding: '0.5rem 1.25rem', borderRadius: '6px', border: 'none', background: 'var(--primary-color)', color: 'white', cursor: 'pointer', fontWeight: 'bold', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)' }}>View Resources</button>
+                            <button onClick={() => navigate('/active-modes')} className="btn-primary" style={{ marginLeft: '1rem', fontSize: '0.85rem', padding: '0.5rem 1.25rem', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 'bold', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)' }}>View Resources</button>
                             <button onClick={clearAllModes} style={{ marginLeft: '1rem', fontSize: '0.75rem', padding: '0.4rem 1rem', borderRadius: '999px', border: 'none', background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', cursor: 'pointer', fontWeight: 'bold', transition: 'all 0.2s' }}>Clear All</button>
                         </div>
                     </motion.div>
@@ -242,7 +246,7 @@ const Dashboard = () => {
                 </div>
             ) : (
                 <>
-                    {stats.total === 0 && (
+                    {!loading && stats.total === 0 && (
                         <EmptyState 
                             title="Welcome to your Dashboard!"
                             message="You haven't added any resources yet. Start tracking your learning journey by creating a collection or adding a resource."

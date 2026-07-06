@@ -6,6 +6,7 @@ import { Library } from 'lucide-react';
 
 const CollectionPage = () => {
     const [collections, setCollections] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
 
@@ -14,11 +15,14 @@ const CollectionPage = () => {
     }, []);
 
     const fetchCollections = async () => {
+        setLoading(true);
         try {
             const { data } = await API.get('/collections');
             setCollections(data);
         } catch (err) {
             console.error(err);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -72,21 +76,32 @@ const CollectionPage = () => {
             </div>
 
             <div className="collection-grid">
-                {collections.map(collection => (
-                    <CollectionCard
-                        key={collection._id}
-                        collection={collection}
-                        onDelete={handleDelete}
-                    />
-                ))}
-                {collections.length === 0 && (
-                    <div style={{ gridColumn: '1 / -1' }}>
-                        <EmptyState 
-                            title="No collections found" 
-                            message="Create your first collection above to start organizing your learning resources."
-                            icon={Library}
-                        />
-                    </div>
+                {loading ? (
+                    [1, 2, 3].map(i => (
+                        <div key={i} className="card" style={{ minHeight: '120px', opacity: 0.5, animation: 'pulse 1.5s ease-in-out infinite' }}>
+                            <div style={{ height: '1rem', background: 'var(--border-color)', borderRadius: '4px', marginBottom: '0.75rem', width: '60%' }} />
+                            <div style={{ height: '0.75rem', background: 'var(--border-color)', borderRadius: '4px', width: '80%' }} />
+                        </div>
+                    ))
+                ) : (
+                    <>
+                        {collections.map(collection => (
+                            <CollectionCard
+                                key={collection._id}
+                                collection={collection}
+                                onDelete={handleDelete}
+                            />
+                        ))}
+                        {collections.length === 0 && (
+                            <div style={{ gridColumn: '1 / -1' }}>
+                                <EmptyState 
+                                    title="No collections found" 
+                                    message="Create your first collection above to start organizing your learning resources."
+                                    icon={Library}
+                                />
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </div>

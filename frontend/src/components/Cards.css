@@ -140,6 +140,10 @@
     box-shadow: 0 4px 12px var(--primary-glow);
 }
 
+.dark .open-btn:hover {
+    color: #0f172a;
+}
+
 .icon-btn {
     padding: 0.4rem;
     border: 1px solid var(--border-color);

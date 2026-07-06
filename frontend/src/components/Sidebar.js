@@ -15,7 +15,11 @@ const Sidebar = () => {
 
     const isActive = (path) => {
         if (path === '/') return location.pathname === '/';
-        return location.pathname.startsWith(path);
+        // Highlight Collections for both /collections/* and /resource-details/*
+        if (path === '/collections') {
+            return location.pathname.startsWith('/collections') || location.pathname.startsWith('/resource-details');
+        }
+        return location.pathname === path || location.pathname.startsWith(path + '/');
     };
 
     const getInitials = (name) => name ? name.charAt(0).toUpperCase() : 'U';

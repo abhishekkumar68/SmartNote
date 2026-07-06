@@ -211,6 +211,11 @@ a:hover {
   box-shadow: 0 4px 12px var(--primary-glow);
 }
 
+.dark .btn-primary,
+.dark .btn-login {
+  color: #0f172a;
+}
+
 .btn-danger {
   background: transparent;
   color: var(--danger-color);
@@ -245,36 +250,7 @@ a:hover {
   box-shadow: var(--shadow-md);
 }
 
-/* Sidebar */
-.sidebar {
-  width: 250px;
-  background-color: var(--sidebar-bg);
-  border-right: 1px solid var(--border-color);
-  padding: 2rem 0;
-}
-
-.sidebar-menu {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.sidebar-menu li a {
-  display: block;
-  padding: 1rem 2rem;
-  color: var(--text-color);
-  text-decoration: none;
-  font-weight: 500;
-  transition: background 0.2s, color 0.2s, border-left 0.2s;
-  border-left: 4px solid transparent;
-}
-
-.sidebar-menu li a:hover,
-.sidebar-menu li.active a {
-  background-color: rgba(79, 70, 229, 0.1);
-  color: var(--primary-color);
-  border-left: 4px solid var(--primary-color);
-}
+/* Sidebar styles are fully handled by Sidebar.css */
 
 /* Cards */
 .collection-grid,
@@ -633,6 +609,11 @@ a:hover {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.25; }
 }
 
 /* --- Premium Split-Screen Authentication UI --- */
